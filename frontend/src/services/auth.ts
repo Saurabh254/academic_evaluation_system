@@ -1,4 +1,3 @@
-import { useNavigate } from "react-router-dom";
 import { LoginUser } from "../api/login_signup";
 import { FormData } from "../types/auth";
 
