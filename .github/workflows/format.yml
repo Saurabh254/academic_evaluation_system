@@ -36,7 +36,7 @@ jobs:
       # Run Prettier to check for code formatting issues in React files
       - name: Check React code formatting with Prettier
         run: |
-          npx prettier --check .  # Use `--check` to only check, not fix, formatting
+          cd frontend && npx prettier --check .  # Use `--check` to only check, not fix, formatting
 
       # Set up Python for code formatting with Black
       - name: Set up Python
@@ -53,4 +53,4 @@ jobs:
       # Run Black to check for code formatting issues in Python files
       - name: Check Python code formatting with Black
         run: |
-          black --check .  # Use `--check` to only check, not format
+          cd backend && black --check .  # Use `--check` to only check, not format
