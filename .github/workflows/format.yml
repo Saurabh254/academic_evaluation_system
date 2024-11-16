@@ -31,7 +31,7 @@ jobs:
       # Install dependencies (React-specific)
       - name: Install dependencies (React)
         run: |
-          npm install
+          cd frontend && npm install
 
       # Run Prettier to check for code formatting issues in React files
       - name: Check React code formatting with Prettier
