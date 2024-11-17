@@ -1,26 +1,34 @@
 from datetime import datetime
+from typing import Optional
 
-from pydantic import BaseModel
-
-
-class UserBase(BaseModel):
-    name: str
+from pydantic import BaseModel, EmailStr
 
 
-class UserCreate(UserBase):
-    phone: str
-    otp: str
+class StudentBase(BaseModel):
+    name: Optional[str]  # Name is nullable as per the SQLAlchemy model
+    email: Optional[EmailStr]
+    phone: Optional[str]
+    address: Optional[str]
+    father_name: Optional[str]
+    mother_name: Optional[str]
+    semester: int = 1
+    active: bool = True
+    dob: Optional[datetime]
+
+    class Config:
+        orm_mode = True
 
 
-class UserProfile(UserBase):
+class StudentCreate(StudentBase):
+    password: str  # Password is required for creation
+
+
+class StudentProfile(StudentBase):
     id: str
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        orm_mode = True  # Allows Pydantic to read data from ORM models
-
 
 class LoginResponse(BaseModel):
     access_token: str
-    user: UserProfile
+    student: StudentProfile

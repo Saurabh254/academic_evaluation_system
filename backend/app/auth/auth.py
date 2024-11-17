@@ -7,35 +7,37 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.auth.auth_bearer import JWTBearer
 from app.database.db import get_async_db
 from app.exceptions import UnauthorisedUser
-from app.students import models as user_models
+from app.students import models as student_models
+from app.teachers import models as teacher_models
 from jose import JWTError, jwt
-from app.students import interface as user_interface
+from app.students import interface as student_interface
+from app.teachers import interface as teacher_interface
 
 SECRET_KEY = "8cbfecba4cd7d500fdd63917cbe3ce517f0d72946d9e9f7f5e7820d74fb38082"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_DAYS = 30
 
 
-def is_user(user: Union[user_models.User, driver_models.Driver]) -> bool:
-    return isinstance(user, user_models.User)
+def is_student(user: Union[student_models.Student, teacher_models.Teacher]) -> bool:
+    return isinstance(user, student_models.Student)
 
 
-def is_driver(user: Union[user_models.User, driver_models.Driver]) -> bool:
-    return isinstance(user, driver_models.Driver)
+def is_teacher(user: Union[student_models.Student, teacher_models.Teacher]) -> bool:
+    return isinstance(user, teacher_models.Teacher)
 
 
-def get_user_type(user: Union[user_models.User, driver_models.Driver]) -> str:
+def get_user_type(user: Union[student_models.Student, teacher_models.Teacher]) -> str:
     type = None
-    if isinstance(user, user_models.User):
-        type = "User"
-    elif isinstance(user, driver_models.Driver):
-        type = "Driver"
+    if isinstance(user, student_models.Student):
+        type = "Student"
+    elif isinstance(user, teacher_models.Teacher):
+        type = "Teacher"
 
     return type
 
 
 def create_access_token(
-    user: Union[user_models.User, driver_models.Driver],
+    user: Union[student_models.Student, teacher_models.Teacher],
     expires_delta: Union[timedelta, None] = None,
 ) -> str:
     to_encode = {"id": user.id, "role": get_user_type(user)}
@@ -49,7 +51,7 @@ def create_access_token(
     return encoded_jwt
 
 
-def decrpt_access_token(token: str, role: Literal["User", "Driver"]) -> str:
+def decrypt_access_token(token: str, role: Literal["Student", "Teacher"]) -> str:
     user_id = None  # type: ignore
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
@@ -64,8 +66,8 @@ def decrpt_access_token(token: str, role: Literal["User", "Driver"]) -> str:
 
 async def get_optional_loggedin_user(
     token: Annotated[str, Depends(JWTBearer(auto_error=False))],
-    db: AsyncSession = Depends(get_async_db),
-) -> Union[user_models.User, driver_models.Driver, None]:
+    session: AsyncSession = Depends(get_async_db),
+) -> Union[student_models.Student, teacher_models.Teacher, None]:
     user_id = None  # type: ignore
     role = None  # type: ignore
     try:
@@ -76,19 +78,23 @@ async def get_optional_loggedin_user(
         pass
     user = None
     if user_id:
-        if role == "User":
-            user = await user_interface.get_user(user_id=user_id, db=db)
-        elif role == "Driver":
-            user = await driver_interface.get_driver(driver_id=user_id, db=db)
+        if role == "Student":
+            user = await student_interface.get_student(
+                student_id=user_id, session=session
+            )
+        elif role == "Teacher":
+            user = await teacher_interface.get_teacher(
+                teacher_id=user_id, session=session
+            )
     return user
 
 
 async def get_loggedin_user(
     optional_user: Annotated[
-        Optional[Union[user_models.User, driver_models.Driver]],
+        Optional[Union[student_models.Student, teacher_models.Teacher]],
         Depends(get_optional_loggedin_user),
     ]
-) -> Union[user_models.User, driver_models.Driver]:
+) -> Union[student_models.Student, teacher_models.Teacher]:
 
     if optional_user is None:
         raise HTTPException(
@@ -102,11 +108,12 @@ async def get_loggedin_user(
 
 async def get_current_user(
     loggedin_user: Annotated[
-        user_models.User | driver_models.Driver | None, Depends(get_loggedin_user)
+        student_models.Student | teacher_models.Teacher | None,
+        Depends(get_loggedin_user),
     ],
-) -> user_models.User:
+) -> student_models.Student:
 
-    if is_user(loggedin_user):
+    if is_student(loggedin_user):
         return loggedin_user
     else:
         raise HTTPException(
@@ -116,18 +123,19 @@ async def get_current_user(
 
 async def get_current_active_user(
     user: Any = Depends(get_current_user),
-) -> user_models.User:
+) -> student_models.Student:
     if user.active:
         return user
     raise UnauthorisedUser(message="forbidden user")
 
 
-async def get_current_driver(
+async def get_current_teacher(
     loggedin_user: Annotated[
-        user_models.User | driver_models.Driver | None, Depends(get_loggedin_user)
+        student_models.Student | teacher_models.Teacher | None,
+        Depends(get_loggedin_user),
     ],
-) -> driver_models.Driver:
-    if is_driver(loggedin_user):
+) -> teacher_models.Teacher:
+    if is_teacher(loggedin_user):
         return loggedin_user
     else:
         raise HTTPException(
@@ -136,9 +144,9 @@ async def get_current_driver(
 
 
 async def get_user_from_access_token(
-    token: str, db: AsyncSession
-) -> user_models.User | driver_models.Driver:
-    user_id = None
+    token: str, session: AsyncSession
+) -> student_models.Student | teacher_models.Teacher:
+    user_id = None  # type: ignore
     role = None  # type: ignore
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
@@ -147,9 +155,9 @@ async def get_user_from_access_token(
 
     except (JWTError, Exception):
         pass
-    if role == "Driver":
-        return await driver_interface.get_driver(driver_id=user_id, db=db)
-    elif role == "User":
-        return await user_interface.get_user(user_id=user_id, db=db)
+    if role == "Teacher":
+        return await teacher_interface.get_teacher(teacher_id=user_id, session=session)
+    elif role == "Student":
+        return await student_interface.get_student(student_id=user_id, session=session)
     else:
         raise

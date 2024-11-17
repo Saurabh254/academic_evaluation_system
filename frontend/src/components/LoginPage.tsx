@@ -84,6 +84,10 @@ const LoginPage = () => {
                 onClick={() => {
                   HandleUserLogin(formData)
                     .then((response) => {
+                      localStorage.setItem(
+                        "access_token",
+                        response.data.access_token
+                      );
                       navigate("/");
                       if (response.status == 200) {
                         navigate("/");

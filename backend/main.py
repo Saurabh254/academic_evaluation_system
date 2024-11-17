@@ -5,7 +5,7 @@ from app import api as public_api
 from app.exception_handling import add_exception_handler
 
 app = FastAPI(
-    title="Sonnet",
+    title="Academic System",
     description="A FastAPI application build for a purpose.",
     version="0.0.1",
     contact={

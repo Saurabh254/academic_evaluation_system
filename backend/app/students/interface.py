@@ -9,47 +9,53 @@ from app.exceptions import UnauthorisedUser
 from . import errors, models, schemas
 
 
-async def login_user(username: str, password: str, db: AsyncSession) -> dict[str, Any]:
-    stmt = select(models.User).where(models.User.phone == phone)
-    result = await db.execute(stmt)
-    user = result.scalar_one_or_none()
+async def login_student(
+    id: str, password: str, session: AsyncSession
+) -> dict[str, Any]:
+    stmt = select(models.Student).where(
+        models.Student.id == id, models.Student.password == password
+    )
+    result = await session.execute(stmt)
+    student = result.scalar_one_or_none()
 
-    if not user:
-        raise errors.UserNotFound
+    if not student:
+        raise errors.StudentNotFound
 
-    if not user.active:
+    if not student.active:
         raise UnauthorisedUser
 
-    access_token = auth.create_access_token(user=user)
+    access_token = auth.create_access_token(user=student)
     return {
         "access_token": access_token,
-        "user": user.__dict__,
+        "student": student.__dict__,
     }
 
 
-async def signup_user(user_data: schemas.UserCreate, db: AsyncSession) -> models.User:
+async def signup_student(
+    student_data: schemas.StudentCreate, session: AsyncSession
+) -> models.Student:
     is_existing_stmt = (
         select(func.count())
-        .select_from(models.User)
-        .filter(models.User.phone == user_data.phone)
+        .select_from(models.Student)
+        .filter(models.Student.phone == student_data.phone)
     )
-    result = await db.execute(is_existing_stmt)
+    result = await session.execute(is_existing_stmt)
     count = result.scalar()
     if count:
-        raise errors.UserAlreadyExists
+        raise errors.StudentAlreadyExists
 
-    user = models.User(**user_data.model_dump(exclude={"otp"}))
-    db.add(user)
-    await db.commit()
-    await db.refresh(user)
-    return user
+    student = models.Student(**student_data.model_dump(exclude={"otp"}))
+    session.add(student)
+    await session.commit()
+    await session.refresh(student)
+    return student
 
 
-async def logout_user(user: models.User) -> dict[str, str]:
+async def logout_student(student: models.Student) -> dict[str, str]:
     return {"msg": "Successfully logged out"}
 
 
-async def get_user(user_id: str, db: AsyncSession) -> models.User:
-    stmt = select(models.User).filter(models.User.id == user_id)
-    result = await db.execute(stmt)
+async def get_student(student_id: str, session: AsyncSession) -> models.Student:
+    stmt = select(models.Student).filter(models.Student.id == student_id)
+    result = await session.execute(stmt)
     return result.scalar_one_or_none()

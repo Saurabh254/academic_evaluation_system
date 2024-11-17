@@ -6,7 +6,7 @@ from app.database.db import get_async_db
 
 from . import interface, models, schemas
 
-router = APIRouter(tags=["User Authentication"], prefix="/users")
+router = APIRouter(tags=["student"], prefix="/students")
 
 
 @router.post(
@@ -19,33 +19,32 @@ async def login(
     password: str = Body(..., description="users password"),
     db: AsyncSession = Depends(get_async_db),
 ):
-    return await interface.login_user(username, password, db)
+    return await interface.login_student(username, password, db)
 
 
 @router.post(
     "/signup",
     description="Sign up a new user using the provided data.",
-    response_model=schemas.UserProfile,
+    response_model=schemas.StudentProfile,
 )
 async def signup(
-    user_data: schemas.UserCreate, db: AsyncSession = Depends(get_async_db)
+    user_data: schemas.StudentCreate, db: AsyncSession = Depends(get_async_db)
 ):
-    return await interface.signup_user(user_data=user_data, db=db)
+    return await interface.signup_student(user_data, session=db)
 
 
 @router.post(
     "/logout",
     description="Logs out the currently authenticated user and invalidates the session.",
-    response_model=schemas.UserProfile,
 )
-async def logout(current_user: models.User = Depends(auth.get_current_active_user)):
-    return await interface.logout_user(current_user)
+async def logout(current_user: models.Student = Depends(auth.get_current_active_user)):
+    return await interface.logout_student(current_user)
 
 
 @router.get(
     "/me",
-    response_model=schemas.UserProfile,
+    response_model=schemas.StudentProfile,
     description="Retrieve the profile of the currently authenticated user.",
 )
-async def read_me(current_user: models.User = Depends(auth.get_current_active_user)):
+async def read_me(current_user: models.Student = Depends(auth.get_current_active_user)):
     return current_user
