@@ -1,5 +1,6 @@
-const HomePage = () => {
-  return <h1>this is student homepage </h1>;
-};
+import Main from "./Main";
 
+const HomePage = () => {
+  return <Main />;
+};
 export default HomePage;

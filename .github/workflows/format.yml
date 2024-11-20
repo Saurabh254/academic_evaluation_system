@@ -1,0 +1,56 @@
+name: Code Formatter
+
+on:
+  push:
+    branches:
+      - main
+      - "feat/*"
+      - "fix/*"
+      - "choro/*"
+  pull_request:
+    branches:
+      - main
+      - "feat/*"
+      - "fix/*"
+      - "choro/*"
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      # Checkout the code
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Set up Node.js for React formatting with Prettier
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "16" # Change to your desired version
+
+      # Install dependencies (React-specific)
+      - name: Install dependencies (React)
+        run: |
+          cd frontend && npm install
+
+      # Run Prettier to check for code formatting issues in React files
+      - name: Check React code formatting with Prettier
+        run: |
+          cd frontend && npx prettier --check .  # Use `--check` to only check, not fix, formatting
+
+      # Set up Python for code formatting with Black
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: "3.9" # Change to your desired version
+
+      # Install dependencies (Python-specific)
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install black
+
+      # Run Black to check for code formatting issues in Python files
+      - name: Check Python code formatting with Black
+        run: |
+          cd backend && black --check .  # Use `--check` to only check, not format
