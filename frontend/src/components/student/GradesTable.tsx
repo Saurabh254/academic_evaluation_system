@@ -1,40 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { GetMyGrades } from "../../services/student";
+import { Grade, StudentGrade } from "../../types/grades";
 
-const data = [
-  {
-    subject: {},
-    cgpa: 6.54,
-    semester: 1,
-    id: 0,
-    student_id: "string",
-    created_at: "2024-11-17T16:07:00.205Z",
-    updated_at: "2024-11-17T16:07:00.205Z",
-  },
-  {
-    subject: {},
-    cgpa: 6.3,
-    semester: 2,
-    id: 1,
-    student_id: "string",
-    created_at: "2024-11-17T16:07:00.205Z",
-    updated_at: "2024-11-17T16:07:00.205Z",
-  },
-];
+interface GradeView {
+  grades: StudentGrade[];
+}
 
-const GradesTable = () => {
-  const [grades, SetGrades] = useState(null);
-  useEffect(() => {
-    const call_api = async () => {
-      const grades = await GetMyGrades();
-      if (grades.status != 404) {
-        SetGrades(grades.data);
-      }
-    };
-    call_api();
-  }, []);
-  if (grades == null) {
-    return <span>record not available</span>;
+export const GradesView = ({ grades }: GradeView) => {
+  if (grades == null || grades.length == 0) {
+    return <span className="mb-4">no grades data available</span>;
   }
   return (
     <div className="overflow-x-auto w-full ml-44">
@@ -52,7 +26,7 @@ const GradesTable = () => {
         <tbody>
           {/* Dynamically Render Rows */}
           {grades.map((item, index) => (
-            <tr key={item.id}>
+            <tr key={`${item.id}-${index}`}>
               <th>{index + 1}</th>
               <td>{item.cgpa}</td>
               <td>{item.semester}</td>
@@ -64,6 +38,22 @@ const GradesTable = () => {
       </table>
     </div>
   );
+};
+const GradesTable = () => {
+  const [grades, SetGrades] = useState<StudentGrade[]>([]);
+  useEffect(() => {
+    const call_api = async () => {
+      const grades = await GetMyGrades();
+      if (grades.status != 404) {
+        SetGrades(grades.data);
+      }
+    };
+    call_api();
+  }, []);
+  if (grades == null) {
+    return <span>record not available</span>;
+  }
+  return <GradesView grades={grades} />;
 };
 
 export default GradesTable;

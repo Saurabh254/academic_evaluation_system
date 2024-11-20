@@ -56,9 +56,9 @@ async def get_all_teachers(
 
 
 async def authenticate_teacher(
-    session: AsyncSession, email: str, password: str
+    session: AsyncSession, username: str, password: str
 ) -> dict:
-    result = await session.execute(select(Teacher).where(Teacher.email == email))
+    result = await session.execute(select(Teacher).where(Teacher.id == username))
     teacher = result.scalar_one_or_none()
     if (
         not teacher or not teacher.password == password
@@ -68,5 +68,5 @@ async def authenticate_teacher(
     access_token = auth.create_access_token(user=teacher)
     return {
         "access_token": access_token,
-        "student": teacher.__dict__,
+        "teacher": teacher.__dict__,
     }

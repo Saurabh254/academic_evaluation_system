@@ -1,7 +1,8 @@
 import { useNavigate } from "react-router-dom";
 import MainView from "./MainView";
 import { useState } from "react";
-const Sidebar = () => {
+
+const Main = () => {
   const [mainViewState, setMainViewState] = useState("home");
   const navigate = useNavigate();
   return (
@@ -53,4 +54,4 @@ const Sidebar = () => {
   );
 };
 
-export default Sidebar;
+export default Main;

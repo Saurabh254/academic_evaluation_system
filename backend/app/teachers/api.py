@@ -1,9 +1,12 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Body, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
+from app.auth import auth
+from app.teachers import schemas
 from app.teachers.schemas import TeacherCreate, TeacherUpdate, TeacherResponse
 from app.database.db import get_async_db
 from app.teachers import (
     interface,
+    models,
 )  # Assuming your interface file is in the 'teacher' module
 
 router = APIRouter(prefix="/teachers", tags=["Teachers"])
@@ -14,6 +17,11 @@ async def create_teacher_route(
     teacher_data: TeacherCreate, session: AsyncSession = Depends(get_async_db)
 ):
     return await interface.create_teacher(session, teacher_data)
+
+
+@router.get("/me", response_model=schemas.TeacherResponse)
+async def get_me(current_user: models.Teacher = Depends(auth.get_current_teacher)):
+    return current_user
 
 
 @router.get("/{teacher_id}", response_model=TeacherResponse)
@@ -59,9 +67,11 @@ async def get_all_teachers_route(
 
 @router.post("/login")
 async def authenticate_teacher_route(
-    email: str, password: str, session: AsyncSession = Depends(get_async_db)
+    username: str = Body(),
+    password: str = Body(),
+    session: AsyncSession = Depends(get_async_db),
 ):
-    teacher = await interface.authenticate_teacher(session, email, password)
+    teacher = await interface.authenticate_teacher(session, username, password)
     if not teacher:
         raise HTTPException(status_code=401, detail="Invalid email or password")
     return teacher

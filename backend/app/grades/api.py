@@ -16,7 +16,7 @@ router = APIRouter(prefix="/grades", tags=["Grades"])
 
 # Route for teachers to add grades for a student
 @router.post(
-    "/",
+    "",
     status_code=status.HTTP_204_NO_CONTENT,
 )
 async def add_grade_for_student(
@@ -32,9 +32,7 @@ async def add_grade_for_student(
     )
 
 
-@router.get(
-    "",
-)
+@router.get("", response_model=list[schemas.StudentGradeResponse])
 async def get_my_grades(
     current_user: Student = Depends(auth.get_current_user),
     db: AsyncSession = Depends(get_async_db),
@@ -43,7 +41,7 @@ async def get_my_grades(
 
 
 # Route for students to view their grades
-@router.get("/{student_id}", response_model=schemas.StudentGrade)
+@router.get("/{student_id}", response_model=list[schemas.StudentGradeResponse])
 async def get_grades_for_student(
     student_id: str,
     current_user: Student = Depends(

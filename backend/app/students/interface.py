@@ -59,3 +59,9 @@ async def get_student(student_id: str, session: AsyncSession) -> models.Student:
     stmt = select(models.Student).filter(models.Student.id == student_id)
     result = await session.execute(stmt)
     return result.scalar_one_or_none()
+
+
+async def list_students(session: AsyncSession):
+    stmt = select(models.Student).order_by(models.Student.created_at.desc())
+    result = await session.execute(stmt)
+    return result.scalars().all()

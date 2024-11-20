@@ -1,14 +1,41 @@
-import { useState } from "react";
-import { HandleUserLogin } from "../services/auth";
+import { FormEvent, useState } from "react";
+import { HandleTeacherLogin, HandleUserLogin } from "../services/auth";
 import { useNavigate } from "react-router-dom";
+import { ConeIcon } from "lucide-react";
 
 const LoginPage = () => {
-  const [type, setType] = useState("student");
+  const [type, setType] = useState<"student" | "teacher">("student");
   const navigate = useNavigate();
-  const [formData, SetFormData] = useState({
-    identity: "",
-    password: "",
-  });
+
+  const HandleLogin = async (e) => {
+    e.preventDefault(); //
+    const formData = new FormData(e.target);
+    const identity: string = formData.get("username");
+    const password: string = formData.get("password");
+    if (type == "student") {
+      const response = await HandleUserLogin({
+        username: identity,
+        password: password,
+      });
+      if (response.status == 200) {
+        localStorage.setItem("access_token", response.data.access_token);
+        navigate("/");
+      }
+    } else {
+      HandleTeacherLogin({
+        username: identity,
+        password: password,
+      })
+        .then((response) => {
+          localStorage.setItem("access_token", response.data.access_token);
+          if (response.status == 200) {
+            navigate("/teacher");
+          }
+          console.log(response.data);
+        })
+        .catch((e) => alert(e));
+    }
+  };
   return (
     <div className="bg-base-200 min-h-screen flex items-center justify-center">
       <div className="card lg:card-side bg-base-100 shadow-xl max-w-4xl w-full">
@@ -23,7 +50,7 @@ const LoginPage = () => {
           <h2 className="card-title text-2xl font-bold mb-6 flex w-full text-center items-center justify-center">
             {type == "student" ? "Student Login" : "Teacher Login"}
           </h2>
-          <form>
+          <form onSubmit={HandleLogin}>
             <div className="form-control">
               <label className="label">
                 <span className="label-text">
@@ -33,13 +60,9 @@ const LoginPage = () => {
               <label className="input input-bordered flex items-center gap-2">
                 <span className="ri-user-line"></span>
                 <input
-                  type="email"
                   className="grow"
+                  name="username" // Add the name attribute
                   placeholder={type == "student" ? "0115CS00000" : "TEC1452827"}
-                  value={formData.identity}
-                  onChange={(e) => {
-                    SetFormData({ ...formData, identity: e.target.value });
-                  }}
                   required
                 />
               </label>
@@ -64,11 +87,8 @@ const LoginPage = () => {
                 <input
                   type="password"
                   className="grow"
+                  name="password" // Add the name attribute
                   placeholder="Enter password"
-                  value={formData.password}
-                  onChange={(e) => {
-                    SetFormData({ ...formData, password: e.target.value });
-                  }}
                   required
                 />
               </label>
@@ -79,33 +99,15 @@ const LoginPage = () => {
               </label>
             </div>
             <div className="form-control mt-6">
-              <button
-                className="btn btn-primary"
-                onClick={() => {
-                  HandleUserLogin(formData)
-                    .then((response) => {
-                      localStorage.setItem(
-                        "access_token",
-                        response.data.access_token
-                      );
-                      navigate("/");
-                      if (response.status == 200) {
-                        navigate("/");
-                      }
-                    })
-                    .catch((e) => alert(e));
-                }}
-              >
-                Login
-              </button>
+              <button className="btn btn-primary">Login</button>
             </div>
           </form>
+
           <div className="divider">OR</div>
           <div className="text-center">
             <button
               onClick={() => {
                 setType(type == "student" ? "teacher" : "student");
-                SetFormData({ identity: "", password: "" });
               }}
               className="link link-primary"
             >

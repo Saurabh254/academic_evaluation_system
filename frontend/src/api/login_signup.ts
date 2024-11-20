@@ -7,6 +7,11 @@ export const LoginUser = async (request_body: LoginRequestBody) => {
     '/students/login', request_body
   )
 };
+export const LoginTeacher = async (request_body: LoginRequestBody) => {
+  return await apiClientNoAuth.post(
+    '/teachers/login', request_body
+  )
+};
 
 // Fa0uU08DSMfa
 
@@ -16,4 +21,11 @@ export const FetchUser = async () => {
 
 export const GetGrades = async () => {
   return await apiClient.get('/grades')
+}
+
+export const FetchStudentById = async (student_id: string) => {
+  return await apiClient.get(`/students/${student_id}`)
+}
+export const FetchGradeByStudentId = async (student_id: string) => {
+  return await apiClient.get(`/grades/${student_id}`)
 }

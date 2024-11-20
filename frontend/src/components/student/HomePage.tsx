@@ -1,6 +1,6 @@
-import Sidebar from "./Sidebar";
+import Main from "./Main";
 
 const HomePage = () => {
-  return <Sidebar />;
+  return <Main />;
 };
 export default HomePage;

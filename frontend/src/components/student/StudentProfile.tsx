@@ -1,8 +1,12 @@
 import React, { useEffect, useState } from "react";
 import GradesTable from "./GradesTable";
 import { GetMyGrades, GetStudent } from "../../services/student";
+import { Student } from "@/types/student";
 
-const StudentProfile = ({ student }) => {
+interface StudentProfile {
+  student: Student;
+}
+export const StudentProfile = ({ student }: StudentProfile) => {
   return (
     <div className="flex  items-center my-8 w-full">
       <div className="w-full  rounded-lg  p-6 flex justify-evenly [&>*]:w-1/2">

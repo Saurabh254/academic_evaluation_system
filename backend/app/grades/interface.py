@@ -29,7 +29,7 @@ async def add_grade(
     student_grade = StudentGrade(
         student_id=student_id,
         semester=grade_data.get("semester"),
-        cgpa=grade_data.get("cgpa", 0),
+        cgpa=grade_data.get("cgpa"),
     )
     session.add(student_grade)
     await session.commit()
@@ -47,21 +47,26 @@ async def add_grade(
 
 
 async def get_grades(student_id: str, session: AsyncSession):
-
-    subq = select(StudentGrade.id.label("student_id")).filter(
-        StudentGrade.student_id == student_id
-    )
+    # Build the query
+    # Query the StudentGrade table with pre-loaded grades relationship
     stmt = (
         select(StudentGrade)
-        .options(joinedload(StudentGrade.grades))
-        .filter(StudentGrade.id == subq.c.student_id)
+        .options(joinedload(StudentGrade.grades))  # Eager load grades relationship
+        .filter(StudentGrade.student_id == student_id)  # Filter by student ID
     )
+
+    # Execute the query
     result = await session.execute(stmt)
-    grades = result.unique().fetchall()
-    if not grades:
+    student_grades = (
+        result.unique().scalars().all()
+    )  # Fetch all results as StudentGrade instances
+
+    # If no data found, raise exception
+    if not student_grades:
         raise HTTPException(status_code=404, detail="No grades found for this student")
 
-    return {"k": grades}
+    # Structure the data
+    return student_grades
 
 
 async def get_grade(current_user: Student, session: AsyncSession):

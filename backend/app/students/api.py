@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth import auth
 from app.database.db import get_async_db
-
+from app.teachers import models as teacher_models
 from . import interface, models, schemas
 
 router = APIRouter(tags=["student"], prefix="/students")
@@ -42,9 +42,27 @@ async def logout(current_user: models.Student = Depends(auth.get_current_active_
 
 
 @router.get(
+    "/all",
+)
+async def list_students(
+    current_user: teacher_models.Teacher = Depends(auth.get_current_teacher),
+    db: AsyncSession = Depends(get_async_db),
+):
+    ...
+    return await interface.list_students(db)
+
+
+@router.get(
     "/me",
     response_model=schemas.StudentProfile,
     description="Retrieve the profile of the currently authenticated user.",
 )
 async def read_me(current_user: models.Student = Depends(auth.get_current_active_user)):
     return current_user
+
+
+@router.get("/{student_id}", dependencies=[Depends(auth.get_current_teacher)])
+async def get_student_by_id(
+    student_id: str, session: AsyncSession = Depends(get_async_db)
+):
+    return await interface.get_student(student_id, session)

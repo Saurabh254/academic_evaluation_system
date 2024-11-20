@@ -1,14 +1,25 @@
 import { Route, Routes } from "react-router-dom";
-import LoginPage from "./components/LoginPage";
+import React, { Suspense } from "react";
 import "remixicon/fonts/remixicon.css";
-import StudentHomePage from "./components/student/HomePage";
+
+// Lazy loading the components
+const LoginPage = React.lazy(() => import("./components/LoginPage"));
+const StudentHomePage = React.lazy(
+  () => import("./components/student/HomePage")
+);
+const TeacherHomePage = React.lazy(
+  () => import("./components/teacher/HomePage")
+);
 
 function App() {
   return (
-    <Routes>
-      <Route path="/" element={<StudentHomePage />} />
-      <Route path="/login" element={<LoginPage />} />
-    </Routes>
+    <Suspense fallback={<div>Loading...</div>}>
+      <Routes>
+        <Route path="/" element={<StudentHomePage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/teacher/*" element={<TeacherHomePage />} />
+      </Routes>
+    </Suspense>
   );
 }
 

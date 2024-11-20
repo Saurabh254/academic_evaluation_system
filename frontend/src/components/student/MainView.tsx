@@ -1,4 +1,4 @@
-import GradeChart from "./GradeCharts";
+import GradeChart from "../../common/GradeCharts";
 import StudentProfile from "./StudentProfile";
 interface MainViewType {
   state: string;
