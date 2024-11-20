@@ -25,7 +25,8 @@ def upgrade() -> None:
         """ALTER TABLE student_grades
 ALTER COLUMN subject
 TYPE JSONB
-USING subject::jsonb;
+USING subject[1]::jsonb;
+ALTER TABLE
 """
     )
     # ### end Alembic commands ###
